@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Legal Document Assistant — Upload contracts and ask plain-English questions about clauses using AI-powered retrieval.">
+  <title>Legal Document Assistant</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- ─── Sidebar ─── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span class="logo-text">LegalLens</span>
+        </div>
+        <button class="btn-icon" id="settingsBtn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="section-title">Documents</h3>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept=".pdf,.txt,.text" hidden>
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="upload-text">Drop PDF or TXT here</p>
+          <p class="upload-hint">or click to browse</p>
+        </div>
+      </div>
+
+      <div class="sidebar-section doc-list-section">
+        <h3 class="section-title">Uploaded Files</h3>
+        <div class="doc-list" id="docList">
+          <div class="empty-state" id="emptyDocs">
+            <p>No documents yet</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <p class="footer-text">Powered by RAG + OpenAI</p>
+      </div>
+    </aside>
+
+    <!-- ─── Mobile sidebar toggle ─── -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main-content">
+      <!-- Welcome / empty state -->
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-content">
+          <div class="welcome-icon-container">
+            <svg class="welcome-icon" viewBox="0 0 80 80" fill="none" stroke="#18181b" stroke-width="2">
+              <rect x="12" y="6" width="38" height="50" rx="2"/>
+              <line x1="20" y1="18" x2="42" y2="18" opacity="0.7"/>
+              <line x1="20" y1="26" x2="38" y2="26" opacity="0.5"/>
+              <line x1="20" y1="34" x2="42" y2="34" opacity="0.7"/>
+              <line x1="20" y1="42" x2="34" y2="42" opacity="0.5"/>
+              <rect x="38" y="38" width="30" height="30" rx="2"/>
+              <line x1="46" y1="50" x2="60" y2="50"/>
+              <line x1="53" y1="43" x2="53" y2="57"/>
+            </svg>
+          </div>
+          <h1 class="welcome-title">Legal Document Assistant</h1>
+          <p class="welcome-subtitle">Upload a contract and ask questions in plain English.<br>AI-powered clause analysis using Retrieval-Augmented Generation.</p>
+          <div class="welcome-steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-text">
+                <strong>Set your API key</strong>
+                <span>Click the ⚙ in the sidebar</span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-text">
+                <strong>Upload a document</strong>
+                <span>PDF or plain text files</span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-text">
+                <strong>Ask questions</strong>
+                <span>"What are the termination clauses?"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="chat-area" id="chatArea" style="display: none;">
+        <div class="chat-header">
+          <h2 class="chat-title" id="chatTitle">Ask about your documents</h2>
+          <div class="chat-filter">
+            <select id="docFilter" class="doc-filter-select">
+              <option value="">All documents</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="message assistant-message">
+            <div class="message-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div class="message-content">
+              <p>I'm ready to help you understand your legal documents. Ask me anything about the uploaded contracts — clauses, terms, obligations, or any specific questions you have.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="chat-input-container">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask about your documents..." rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" title="Send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+          <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ─── Settings Modal ─── -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button class="btn-icon modal-close" id="closeSettings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">LLM Provider</label>
+        <p class="form-hint">Select your AI provider and enter the API key. Key is stored in server memory only — never saved to disk.</p>
+
+        <div class="provider-options" id="providerOptions">
+          <label class="provider-option">
+            <input type="radio" name="provider" value="openai" checked>
+            <div class="provider-card">
+              <strong>OpenAI</strong>
+              <span>GPT-4o-mini · text-embedding-3-small</span>
+            </div>
+          </label>
+          <label class="provider-option">
+            <input type="radio" name="provider" value="gemini">
+            <div class="provider-card">
+              <strong>Google Gemini</strong>
+              <span>Gemini 2.0 Flash · gemini-embedding-001</span>
+            </div>
+          </label>
+          <label class="provider-option">
+            <input type="radio" name="provider" value="grok">
+            <div class="provider-card">
+              <strong>xAI Grok</strong>
+              <span>Grok-3-mini-fast</span>
+            </div>
+          </label>
+        </div>
+
+        <label class="form-label" for="apiKeyInput" style="margin-top: 1rem;">API Key</label>
+        <div class="api-key-input-row">
+          <input type="password" id="apiKeyInput" class="form-input" placeholder="sk-..." autocomplete="off">
+          <button class="btn btn-primary" id="saveKeyBtn">Save</button>
+        </div>
+        <div class="api-key-status" id="apiKeyStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Upload Progress Modal ─── -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal modal-sm">
+      <div class="modal-body" style="text-align: center; padding: 2rem;">
+        <div class="upload-spinner"></div>
+        <h3 class="upload-progress-title" id="uploadProgressTitle">Processing document...</h3>
+        <p class="upload-progress-text" id="uploadProgressText">Extracting text and generating embeddings</p>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="uploadProgressBar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Source Detail Modal ─── -->
+  <div class="modal-overlay" id="sourceModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="sourceModalTitle">Source Details</h3>
+        <button class="btn-icon modal-close" id="closeSource">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="source-full-text" id="sourceFullText"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
